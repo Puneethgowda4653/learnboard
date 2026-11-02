@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block body %}<h2>Tests</h2>
+<form class="card" method="get">
+<select name="board"><option value="">All boards</option>{% for b in BOARDS %}<option {{'selected' if f.board==b}}>{{b}}</option>{% endfor %}</select>
+<select name="grade"><option value="">All classes</option>{% for g in GRADES %}<option {{'selected' if f.grade==g|string}}>{{g}}</option>{% endfor %}</select>
+<select name="subject"><option value="">All subjects</option>{% for s in SUBJECTS %}<option {{'selected' if f.subject==s}}>{{s}}</option>{% endfor %}</select>
+<select name="kind"><option value="">All types</option>{% for k in ['practice','topic','past_paper'] %}<option {{'selected' if f.kind==k}}>{{k}}</option>{% endfor %}</select>
+<button>Filter</button></form>
+{% for t in tests %}<div class="card"><b>{{t.title}}</b> <span class="mute">{{t.board}} · Class {{t.grade}} · {{t.subject}} · {{t.kind}}{% if t.year %} · {{t.year}}{% endif %} · {{t.n}} questions · {{t.duration}} min</span>
+<form method="post" action="/test/{{t.id}}/start" class="inline" style="float:right"><input type="hidden" name="csrf" value="{{csrf}}"><button>Start</button></form></div>
+{% else %}<div class="card mute">No tests match. Try clearing filters.</div>{% endfor %}{% endblock %}

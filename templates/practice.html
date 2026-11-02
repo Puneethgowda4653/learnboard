@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block body %}<h2>Quick practice</h2><p class="mute">Answers are checked in your browser; this doesn't count toward your dashboard. Use Tests for scored attempts.</p>
+{% for q in qs %}<div class="card"><p><b>Q{{loop.index}}.</b> {{q.text}} <span class="mute">· {{q.topic}}</span></p>
+{% if q.qtype=='mcq' %}{% for o in opts[q.id] %}<label class="opt"><input type="radio" name="p{{q.id}}"> {{'ABCDEF'[loop.index0]}}. {{o}}</label>{% endfor %}{% else %}<input placeholder="Your answer">{% endif %}
+<p><button class="alt" type="button" onclick="this.nextElementSibling.hidden=false">Show answer</button><span hidden> <b class="ok">{{q.answer.split('|')[0]}}</b><br><span class="mute">{{q.explanation}}</span></span></p></div>
+{% else %}<div class="card mute">No questions found.</div>{% endfor %}<a class="btn" href="">New set</a>{% endblock %}

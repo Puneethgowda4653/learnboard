@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block body %}<h2>Tests</h2>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="action" value="create">
+<input name="title" placeholder="Title" required><select name="board">{% for b in BOARDS %}<option>{{b}}</option>{% endfor %}</select>
+<select name="grade">{% for g in GRADES %}<option>{{g}}</option>{% endfor %}</select><select name="subject">{% for s in SUBJECTS %}<option>{{s}}</option>{% endfor %}</select>
+<select name="kind"><option>practice</option><option>topic</option><option>past_paper</option></select><input name="year" placeholder="Year" size="6"><input name="duration" value="30" size="4"> min
+<p><label style="display:inline"><input type="checkbox" name="auto" checked> Auto-pick</label> <input name="count" value="10" size="3"> random questions from the bank, plus these IDs: <input name="qids" placeholder="12, 15, 20"></p><button>Create test</button></form>
+<div class="card"><table>{% for t in tests %}<tr><td>{{t.title}}<br><span class="mute">{{t.board}} · {{t.grade}} · {{t.subject}} · {{t.kind}} · {{t.n}} Qs</span></td><td>{{'published' if t.published else 'hidden'}}</td><td>
+<form method="post" class="inline"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="id" value="{{t.id}}"><input type="hidden" name="action" value="toggle"><button class="alt">Toggle</button></form>
+<form method="post" class="inline" onsubmit="return confirm('Delete?')"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="id" value="{{t.id}}"><input type="hidden" name="action" value="delete"><button class="red">✕</button></form></td></tr>{% endfor %}</table></div>{% endblock %}

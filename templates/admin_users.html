@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block body %}<h2>Users</h2>
+<form method="post" class="card"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="action" value="create">
+<input name="name" placeholder="Name" required><input name="email" type="email" placeholder="Email" required><input name="password" placeholder="Password" required minlength="8">
+<select name="role"><option>student</option><option>admin</option></select><select name="board">{% for b in BOARDS %}<option>{{b}}</option>{% endfor %}</select>
+<select name="grade">{% for g in GRADES %}<option>{{g}}</option>{% endfor %}</select><button>Add user</button></form>
+<div class="card"><table><tr><th>Name</th><th>Email</th><th>Role</th><th>Board/Class</th><th>Tests</th><th>Status</th><th></th></tr>
+{% for u in users %}<tr><td>{{u.name}}</td><td>{{u.email}}</td><td>{{u.role}}</td><td>{{u.board or ''}} {{u.grade or ''}}</td><td>{{u.n}}</td><td>{{'active' if u.active else 'disabled'}}</td><td>
+<form method="post" class="inline"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="id" value="{{u.id}}"><input type="hidden" name="action" value="toggle"><button class="alt">{{'Disable' if u.active else 'Enable'}}</button></form>
+<form method="post" class="inline"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="id" value="{{u.id}}"><input type="hidden" name="action" value="reset"><input name="password" placeholder="new password" minlength="8" required size="12"><button class="alt">Reset</button></form>
+<form method="post" class="inline" onsubmit="return confirm('Delete user and all their attempts?')"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="id" value="{{u.id}}"><input type="hidden" name="action" value="delete"><button class="red">Delete</button></form></td></tr>{% endfor %}</table></div>{% endblock %}

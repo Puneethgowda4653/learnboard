@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block body %}
+<div class="card" style="position:sticky;top:0"><b>{{t.title}}</b> <span id="timer" style="float:right;font-weight:700"></span></div>
+<form method="post" id="f"><input type="hidden" name="csrf" value="{{csrf}}">
+{% for q in qs %}<div class="card"><p><b>Q{{loop.index}}.</b> {{q.text}} <span class="mute">[{{q.marks|int if q.marks==q.marks|int else q.marks}} mark]</span></p>
+{% if q.qtype=='mcq' %}{% for o in opts[q.id] %}<label class="opt"><input type="radio" name="q{{q.id}}" value="{{'ABCDEF'[loop.index0]}}"> {{'ABCDEF'[loop.index0]}}. {{o}}</label>{% endfor %}
+{% else %}<input name="q{{q.id}}" placeholder="Your answer" autocomplete="off">{% endif %}</div>{% endfor %}
+<button>Submit test</button></form>
+<script>let s={{t.duration*60}};const el=document.getElementById('timer');
+setInterval(()=>{s--;el.textContent=Math.floor(s/60)+':'+String(Math.max(s,0)%60).padStart(2,'0');if(s<=0)document.getElementById('f').submit()},1000);
+window.onbeforeunload=()=>"Leave test?";document.getElementById('f').onsubmit=()=>{window.onbeforeunload=null}</script>{% endblock %}

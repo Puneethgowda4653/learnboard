@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block body %}<div class="card" style="max-width:420px;margin:auto"><h2>Student sign up</h2>
+<form method="post"><input type="hidden" name="csrf" value="{{csrf}}">
+<label>Name</label><input name="name" required style="width:100%">
+<label>Email</label><input name="email" type="email" required style="width:100%">
+<label>Password (8+ chars)</label><input name="password" type="password" minlength="8" required style="width:100%">
+<label>Board</label><select name="board">{% for b in BOARDS %}<option>{{b}}</option>{% endfor %}</select>
+<label>Class</label><select name="grade">{% for g in GRADES %}<option>{{g}}</option>{% endfor %}</select>
+<p><button>Create account</button></p></form></div>{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block body %}<h2>Question bank</h2>
+<details class="card"><summary><b>Add question</b></summary><form method="post"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="action" value="add">
+<select name="board">{% for b in BOARDS %}<option>{{b}}</option>{% endfor %}</select><select name="grade">{% for g in GRADES %}<option>{{g}}</option>{% endfor %}</select>
+<select name="subject">{% for s in SUBJECTS %}<option>{{s}}</option>{% endfor %}</select><select name="qtype"><option value="mcq">MCQ</option><option value="short">Short answer</option></select>
+<input name="topic" placeholder="Topic/chapter"><input name="marks" value="1" size="3"><input name="year" placeholder="Year (past paper)" size="8"><input name="source" placeholder="Source e.g. CBSE 2023 Set 1">
+<label>Question</label><textarea name="text" required style="width:100%"></textarea>
+<label>Options (one per line, MCQ only)</label><textarea name="options" style="width:100%"></textarea>
+<label>Answer (MCQ: letter A–F · short: accepted answers separated by |)</label><input name="answer" required style="width:100%">
+<label>Explanation</label><textarea name="explanation" style="width:100%"></textarea><p><button>Save</button></p></form></details>
+<details class="card"><summary><b>Bulk import CSV</b> (e.g. past papers you hold rights to)</summary><form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="action" value="csv">
+<p class="mute">Columns: board,grade,subject,topic,qtype,text,options (separated by |),answer,explanation,marks,source,year</p><input type="file" name="file" accept=".csv"><p><button>Import</button></p></form></details>
+<form class="card" method="get"><select name="board"><option value="">Board</option>{% for b in BOARDS %}<option {{'selected' if f.board==b}}>{{b}}</option>{% endfor %}</select>
+<select name="grade"><option value="">Class</option>{% for g in GRADES %}<option {{'selected' if f.grade==g|string}}>{{g}}</option>{% endfor %}</select>
+<select name="subject"><option value="">Subject</option>{% for s in SUBJECTS %}<option {{'selected' if f.subject==s}}>{{s}}</option>{% endfor %}</select><button>Filter</button></form>
+<div class="card"><table>{% for q in qs %}<tr><td>#{{q.id}}</td><td>{{q.text[:90]}}<br><span class="mute">{{q.board}} · {{q.grade}} · {{q.subject}} · {{q.topic}} · {{q.source}}</span></td><td>{{q.answer}}</td><td>
+<form method="post" class="inline" onsubmit="return confirm('Delete?')"><input type="hidden" name="csrf" value="{{csrf}}"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{q.id}}"><button class="red">✕</button></form></td></tr>{% endfor %}</table></div>{% endblock %}

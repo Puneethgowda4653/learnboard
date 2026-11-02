@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}LearnHub{% endblock %}</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1d2433;--mute:#667085;--pri:#3b5bdb;--ok:#2b8a3e;--bad:#c92a2a;--line:#e3e6ee}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2030;--ink:#e8ebf3;--mute:#9aa4b8;--pri:#7c93ff;--ok:#51cf66;--bad:#ff6b6b;--line:#2c3348}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+nav{background:var(--card);border-bottom:1px solid var(--line);padding:.6rem 1rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+nav b{margin-right:auto}a{color:var(--pri)}main{max-width:960px;margin:1rem auto;padding:0 1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:0 0 1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem}
+.stat{font-size:1.8rem;font-weight:700}.mute{color:var(--mute);font-size:.9rem}
+input,select,textarea,button{font:inherit;padding:.45rem .6rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+button,.btn{background:var(--pri);color:#fff;border:0;cursor:pointer;text-decoration:none;display:inline-block;border-radius:6px;padding:.45rem .9rem}
+button.alt{background:transparent;color:var(--pri);border:1px solid var(--pri)}button.red{background:var(--bad)}
+table{width:100%;border-collapse:collapse}td,th{padding:.4rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.flash{background:#fff3bf;color:#333;padding:.6rem;border-radius:6px;margin-bottom:1rem}
+form.inline{display:inline}label{display:block;margin:.5rem 0 .2rem}.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--pri)}
+.opt{display:block;padding:.3rem 0}
+</style></head><body>
+<nav><b>📚 LearnHub</b>
+{% if user %}{% if user.role=='admin' %}<a href="/admin">Admin</a><a href="/admin/users">Users</a><a href="/admin/questions">Questions</a><a href="/admin/tests">Tests</a>
+{% else %}<a href="/dashboard">Dashboard</a><a href="/tests">Tests</a><a href="/practice">Practice</a><a href="/syllabus">Syllabus</a>{% endif %}
+<span class="mute">{{user.name}}</span><a href="/logout">Log out</a>
+{% else %}<a href="/login">Log in</a><a href="/register">Sign up</a>{% endif %}</nav>
+<main>{% for m in get_flashed_messages() %}<div class="flash">{{m}}</div>{% endfor %}{% block body %}{% endblock %}</main></body></html>

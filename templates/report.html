@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block body %}
+<div class="card"><h2>{{t.title}} — Report</h2>
+<div class="grid"><div><div class="stat">{{a.score|round(1)}}/{{a.total|round(1)}}</div><span class="mute">Score</span></div>
+<div><div class="stat">{{pct}}%</div><span class="mute">Percentage</span></div>
+<div><div class="stat">{{rows|selectattr('correct')|list|length}}/{{rows|length}}</div><span class="mute">Correct</span></div></div></div>
+<div class="card"><h3>Performance by topic</h3>
+{% for x in topics %}<p>{{x.topic}} — {{x.got|round(1)}}/{{x.of|round(1)}} ({{x.pct}}%)<div class="bar"><i style="width:{{x.pct}}%"></i></div></p>{% endfor %}
+{% if weak %}<p class="bad"><b>Focus next on:</b> {{weak|map(attribute='topic')|join(', ')}}</p>{% else %}<p class="ok"><b>Strong across all topics. Try a harder paper.</b></p>{% endif %}
+<a class="btn" href="/practice?subject={{t.subject}}&grade={{t.grade}}&board={{t.board}}">Practise more</a></div>
+<h3>Question review</h3>
+{% for q in rows %}<div class="card"><p><b>Q{{loop.index}}.</b> {{q.text}} <span class="mute">· {{q.topic}}</span></p>
+{% if q.qtype=='mcq' %}<ul>{% for o in opts[q.id] %}{% set L='ABCDEF'[loop.index0] %}<li class="{{'ok' if L==q.answer}} {{'bad' if L==q.response and L!=q.answer}}">{{L}}. {{o}}{% if L==q.response %} ← your answer{% endif %}{% if L==q.answer %} ✓{% endif %}</li>{% endfor %}</ul>
+{% else %}<p>Your answer: <b class="{{'ok' if q.correct else 'bad'}}">{{q.response or '(blank)'}}</b>{% if not q.correct %} · Correct: <b class="ok">{{q.answer.split('|')[0]}}</b>{% endif %}</p>{% endif %}
+<p><b class="{{'ok' if q.correct else 'bad'}}">{{'✔ Correct' if q.correct else ('✘ Not answered' if not q.response else '✘ Incorrect')}} — {{q.awarded|round(1)}}/{{q.marks|round(1)}} marks</b></p>
+<p class="mute"><b>Why:</b> {{q.explanation or 'No explanation provided.'}}</p></div>{% endfor %}{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block body %}<h2>Welcome, {{user.name}}</h2>
+<div class="grid card"><div><div class="stat">{{hist|length}}</div><span class="mute">Tests taken</span></div>
+<div><div class="stat">{{avg}}%</div><span class="mute">Average</span></div><div><div class="stat">{{best}}%</div><span class="mute">Best</span></div></div>
+<div class="card"><h3>Score trend</h3>{% if hist|length>1 %}<svg id="c" viewBox="0 0 600 180" style="width:100%"></svg>{% else %}<p class="mute">Take at least two tests to see your trend.</p>{% endif %}</div>
+<div class="card"><h3>Subject averages</h3>{% for s,v in subj.items() %}<p>{{s}} — {{v}}%<div class="bar"><i style="width:{{v}}%"></i></div></p>{% else %}<p class="mute">No data yet.</p>{% endfor %}</div>
+{% if topics %}<div class="card"><h3>Weakest topics</h3>{% for x in topics[:5] %}<p>{{x.subject}} · {{x.topic}} — <span class="{{'bad' if x.pct<60 else ''}}">{{x.pct}}%</span></p>{% endfor %}</div>{% endif %}
+<div class="card"><h3>History</h3><table><tr><th>Test</th><th>Subject</th><th>Score</th><th>When</th><th></th></tr>
+{% for h in hist|reverse %}<tr><td>{{h.title}}</td><td>{{h.subject}}</td><td>{{h.score|round(1)}}/{{h.total|round(1)}} ({{h.pct}}%)</td><td>{{h.when}}</td><td><a href="/attempt/{{h.id}}/report">Report</a></td></tr>{% endfor %}</table></div>
+<script>const d={{hist|map(attribute='pct')|list|tojson}},c=document.getElementById('c');
+if(c){const n=d.length,pts=d.map((v,i)=>[30+i*(540/(n-1)),160-v*1.4]);
+c.innerHTML='<polyline fill="none" stroke="#3b5bdb" stroke-width="2.5" points="'+pts.map(p=>p.join()).join(' ')+'"/>'+pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#3b5bdb"/><text x="${p[0]}" y="${p[1]-8}" font-size="11" text-anchor="middle" fill="currentColor">${d[i]}%</text>`).join('')}</script>{% endblock %}
