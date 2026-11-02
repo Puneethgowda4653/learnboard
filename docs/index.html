@@ -1,0 +1,98 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LearnHub Demo</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1d2433;--mute:#667085;--pri:#3b5bdb;--ok:#2b8a3e;--bad:#c92a2a;--line:#e3e6ee}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2030;--ink:#e8ebf3;--mute:#9aa4b8;--pri:#7c93ff;--ok:#51cf66;--bad:#ff6b6b;--line:#2c3348}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+nav{background:var(--card);border-bottom:1px solid var(--line);padding:.6rem 1rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+nav b{margin-right:auto}a{color:var(--pri);cursor:pointer}main{max-width:960px;margin:1rem auto;padding:0 1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:0 0 1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem}.stat{font-size:1.8rem;font-weight:700}.mute{color:var(--mute);font-size:.9rem}
+input,select,textarea,button{font:inherit;padding:.45rem .6rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+button{background:var(--pri);color:#fff;border:0;cursor:pointer}button.alt{background:transparent;color:var(--pri);border:1px solid var(--pri)}button.red{background:var(--bad)}
+table{width:100%;border-collapse:collapse}td,th{padding:.4rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.banner{background:#fff3bf;color:#333;padding:.5rem 1rem;font-size:.9rem;text-align:center}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--pri)}label.o{display:block;padding:.25rem 0}
+</style></head><body>
+<div class="banner">Static demo: runs entirely in your browser; data is stored only on this device. The full version uses a server and database.</div>
+<nav id="nav"></nav><main id="m"></main>
+<script>
+const BOARDS=["NCERT/CBSE","ICSE","IGCSE","State Board"],SUBJECTS=["Mathematics","Science","English"],GRADES=[1,2,3,4,5,6,7,8,9,10];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// ---- deterministic seed content (original samples) ----
+let seed=7;const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const ri=(a,b)=>a+Math.floor(rnd()*(b-a+1));const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const SC={Science:[["Plants & Photosynthesis","Which gas do plants absorb for photosynthesis?","Carbon dioxide",["Oxygen","Nitrogen","Hydrogen"],"Plants take in CO₂ and release O₂.",1],["Matter","What is the chemical formula of water?","H₂O",["HO₂","H₂O₂","OH"],"Two hydrogen atoms and one oxygen atom.",3],["Light","Speed of light in vacuum is approximately:","3 × 10⁸ m/s",["3 × 10⁶ m/s","3 × 10⁵ m/s","300 m/s"],"Light travels at about 3×10⁸ m/s.",6],["Human body","Which organ pumps blood around the body?","Heart",["Lungs","Liver","Kidney"],"The heart is the pump of the circulatory system.",1],["Acids & Bases","pH of a neutral solution at 25°C is:","7",["0","14","1"],"pH 7 is neutral; lower is acidic, higher is basic.",7],["Electricity","Ohm's law states that V =","IR",["I/R","R/I","I+R"],"Voltage = current × resistance.",8],["Force & Motion","SI unit of force is:","Newton",["Joule","Watt","Pascal"],"Force is measured in newtons (kg·m/s²).",8],["Solar system","Which planet is known as the Red Planet?","Mars",["Venus","Jupiter","Mercury"],"Iron oxide on the surface makes Mars look red.",3]],
+English:[["Grammar: Nouns","Choose the plural of 'child'.","children",["childs","childes","childrens"],"'Child' has the irregular plural 'children'.",1],["Grammar: Tenses","She ___ to school every day.","goes",["go","going","gone"],"Third-person singular present simple: goes.",2],["Vocabulary","Synonym of 'rapid':","fast",["slow","weak","late"],"Rapid means quick or fast.",4],["Vocabulary","Antonym of 'ancient':","modern",["old","historic","aged"],"Ancient = very old; opposite is modern.",5],["Grammar: Prepositions","The book is ___ the table.","on",["at","by","to"],"'On' shows surface contact.",2],["Grammar: Voice","Passive of 'She wrote a letter':","A letter was written by her.",["A letter is written by her.","She was written a letter.","A letter wrote her."],"Simple past active → was/were + past participle.",7],["Grammar: Reported speech","He said, 'I am tired.' → He said that he ___ tired.","was",["is","were","be"],"Present tense shifts back to past.",7],["Literary devices","'The wind whispered' is an example of:","Personification",["Simile","Metaphor","Alliteration"],"Human action (whispering) given to the wind.",8]]};
+const Q=[];let qid=1;
+function addQ(b,g,s,t,text,ans,exp,opts){Q.push({id:qid++,board:b,grade:g,subject:s,topic:t,type:opts?"mcq":"short",text,options:opts||[],answer:String(ans),exp,marks:1})}
+function mcq(b,g,s,t,text,c,w,exp){const o=shuffle([c,...w]);addQ(b,g,s,t,text,"ABCD"[o.indexOf(c)],exp,o)}
+for(const b of BOARDS){for(let g=1;g<=10;g++){const hi=10**Math.min(1+Math.floor((g+1)/2),4);
+ for(let i=0;i<4;i++){const x=ri(2,hi),y=ri(2,hi);addQ(b,g,"Mathematics","Number operations",`What is ${x} + ${y}?`,x+y,`${x} + ${y} = ${x+y}.`)}
+ {const x=ri(2,12),y=ri(2,12);addQ(b,g,"Mathematics","Multiplication",`What is ${x} × ${y}?`,x*y,`${x} × ${y} = ${x*y}.`)}
+ if(g>=6){const a=ri(2,9),r=ri(1,15);addQ(b,g,"Mathematics","Linear equations",`Solve for x: ${a}x + ${a} = ${a*r+a}`,r,`Subtract ${a}: ${a}x = ${a*r}. Divide by ${a}: x = ${r}.`)}
+ if(g>=8){const k=[[3,4,5],[5,12,13],[8,15,17]][ri(0,2)];addQ(b,g,"Mathematics","Pythagoras / Triangles",`A right triangle has legs ${k[0]} and ${k[1]}. Find the hypotenuse.`,k[2],`√(${k[0]}²+${k[1]}²) = √${k[0]**2+k[1]**2} = ${k[2]}.`)}
+ if(g>=9){const p=ri(1,6),q=ri(1,6);addQ(b,g,"Mathematics","Quadratic equations",`Sum of the roots of x² − ${p+q}x + ${p*q} = 0 is?`,p+q,"For ax²+bx+c=0, sum of roots = −b/a.")}}
+ for(const s in SC)for(const [t,text,ans,w,exp,lo] of SC[s])for(let g=lo;g<=10;g+=3)mcq(b,g,s,t,text,ans,w,exp)}
+const TESTS=[];let tid=1;
+for(const b of BOARDS)for(let g=1;g<=10;g++)for(const s of SUBJECTS){const ids=Q.filter(q=>q.board==b&&q.grade==g&&q.subject==s).map(q=>q.id);if(ids.length>=4)TESTS.push({id:tid++,title:`${s} Practice Test – Class ${g}`,board:b,grade:g,subject:s,duration:15,qids:ids.slice(0,10)})}
+// ---- storage ----
+let S;try{S=JSON.parse(localStorage.getItem("lh"))}catch{}S=S||{users:[],attempts:[],extra:[],session:null};
+const save=()=>{try{localStorage.setItem("lh",JSON.stringify(S))}catch{}};
+const allQ=()=>[...Q,...S.extra],qById=id=>allQ().find(q=>q.id==id);
+const cur=()=>S.session==="admin"?{name:"Admin",role:"admin"}:S.users.find(u=>u.email===S.session&&u.active!==false);
+const $=s=>document.querySelector(s),M=h=>$("#m").innerHTML=h;
+const pct=(a,b)=>b?Math.round(100*a/b):0;
+function nav(){const u=cur();$("#nav").innerHTML="<b>📚 LearnHub</b>"+(u?(u.role==="admin"?`<a onclick="go('admin')">Admin</a>`:`<a onclick="go('dash')">Dashboard</a><a onclick="go('tests')">Tests</a><a onclick="go('practice')">Practice</a>`)+`<span class="mute">${esc(u.name)}</span><a onclick="logout()">Log out</a>`:`<a onclick="go('login')">Log in</a><a onclick="go('reg')">Sign up</a>`)}
+function go(v,a){location.hash=v+(a!==undefined?"/"+a:"")}
+function logout(){S.session=null;save();go("home")}
+const opt=(arr,sel,all)=>(all?`<option value="">${all}</option>`:"")+arr.map(x=>`<option ${String(x)===String(sel)?"selected":""}>${x}</option>`).join("");
+const V={
+home(){M(`<div class="card"><h1>Practise. Get scored. See exactly why.</h1><p>Maths, Science and English for Classes 1–10 across NCERT/CBSE, ICSE, IGCSE and State boards.</p><button onclick="go('reg')">Create student account</button> <button class="alt" onclick="go('login')">Log in</button><p class="mute">Admin demo login: <b>admin</b> / <b>admin123</b></p></div>`)},
+login(){M(`<div class="card" style="max-width:380px;margin:auto"><h2>Log in</h2><label>Email (or "admin")</label><br><input id="e" style="width:100%"><br><label>Password</label><br><input id="p" type="password" style="width:100%"><p><button onclick="doLogin()">Log in</button></p><p id="err" class="bad"></p></div>`)},
+reg(){M(`<div class="card" style="max-width:420px;margin:auto"><h2>Student sign up</h2><label>Name</label><br><input id="n" style="width:100%"><br><label>Email</label><br><input id="e" type="email" style="width:100%"><br><label>Password</label><br><input id="p" type="password" style="width:100%"><br><label>Board</label><br><select id="b">${opt(BOARDS)}</select><br><label>Class</label><br><select id="g">${opt(GRADES,8)}</select><p><button onclick="doReg()">Create account</button></p><p id="err" class="bad"></p></div>`)},
+tests(){const u=cur(),f=window.F||{board:u.board,grade:u.grade,subject:""};window.F=f;
+ const l=TESTS.filter(t=>(!f.board||t.board==f.board)&&(!f.grade||t.grade==f.grade)&&(!f.subject||t.subject==f.subject));
+ M(`<h2>Tests</h2><div class="card"><select onchange="F.board=this.value;V.tests()">${opt(BOARDS,f.board,"All boards")}</select> <select onchange="F.grade=this.value;V.tests()">${opt(GRADES,f.grade,"All classes")}</select> <select onchange="F.subject=this.value;V.tests()">${opt(SUBJECTS,f.subject,"All subjects")}</select></div>`+
+ (l.map(t=>`<div class="card"><b>${t.title}</b> <span class="mute">${t.board} · Class ${t.grade} · ${t.qids.length} questions · ${t.duration} min</span> <button style="float:right" onclick="startTest(${t.id})">Start</button></div>`).join("")||`<div class="card mute">No tests match.</div>`))},
+attempt(id){const t=TESTS.find(t=>t.id==id),qs=t.qids.map(qById);let s=t.duration*60;
+ M(`<div class="card" style="position:sticky;top:0"><b>${t.title}</b> <span id="tm" style="float:right;font-weight:700"></span></div>`+qs.map((q,i)=>`<div class="card"><p><b>Q${i+1}.</b> ${esc(q.text)}</p>`+(q.type=="mcq"?q.options.map((o,j)=>`<label class="o"><input type="radio" name="q${q.id}" value="${"ABCD"[j]}"> ${"ABCD"[j]}. ${esc(o)}</label>`).join(""):`<input name="q${q.id}" autocomplete="off" placeholder="Your answer">`)+`</div>`).join("")+`<button onclick="submitTest(${id})">Submit test</button>`);
+ clearInterval(window.T);window.T=setInterval(()=>{s--;const e=$("#tm");if(!e)return clearInterval(window.T);e.textContent=Math.floor(s/60)+":"+String(Math.max(s,0)%60).padStart(2,"0");if(s<=0){clearInterval(window.T);submitTest(id)}},1000)},
+report(i){const a=S.attempts[i],t=TESTS.find(t=>t.id==a.test),tp={};
+ a.ans.forEach(x=>{const q=qById(x.q),d=tp[q.topic]||(tp[q.topic]={got:0,of:0});d.got+=x.aw;d.of+=q.marks});
+ const tl=Object.entries(tp).map(([k,v])=>({k,...v,p:pct(v.got,v.of)})).sort((x,y)=>x.p-y.p),weak=tl.filter(x=>x.p<60);
+ M(`<div class="card"><h2>${t.title} — Report</h2><div class="grid"><div><div class="stat">${a.score}/${a.total}</div><span class="mute">Score</span></div><div><div class="stat">${pct(a.score,a.total)}%</div><span class="mute">Percentage</span></div><div><div class="stat">${a.ans.filter(x=>x.ok).length}/${a.ans.length}</div><span class="mute">Correct</span></div></div></div>
+ <div class="card"><h3>Performance by topic</h3>${tl.map(x=>`<p>${esc(x.k)} — ${x.got}/${x.of} (${x.p}%)</p><div class="bar"><i style="width:${x.p}%"></i></div>`).join("")}${weak.length?`<p class="bad"><b>Focus next on:</b> ${weak.map(x=>esc(x.k)).join(", ")}</p>`:`<p class="ok"><b>Strong across all topics.</b></p>`}</div><h3>Question review</h3>`+
+ a.ans.map((x,n)=>{const q=qById(x.q);return `<div class="card"><p><b>Q${n+1}.</b> ${esc(q.text)} <span class="mute">· ${esc(q.topic)}</span></p>`+(q.type=="mcq"?`<ul>${q.options.map((o,j)=>{const L="ABCD"[j];return `<li class="${L==q.answer?"ok":L==x.r?"bad":""}">${L}. ${esc(o)}${L==x.r?" ← your answer":""}${L==q.answer?" ✓":""}</li>`}).join("")}</ul>`:`<p>Your answer: <b class="${x.ok?"ok":"bad"}">${esc(x.r)||"(blank)"}</b>${x.ok?"":` · Correct: <b class="ok">${esc(q.answer)}</b>`}</p>`)+`<p><b class="${x.ok?"ok":"bad"}">${x.ok?"✔ Correct":x.r?"✘ Incorrect":"✘ Not answered"} — ${x.aw}/${q.marks} marks</b></p><p class="mute"><b>Why:</b> ${esc(q.exp)||"No explanation."}</p></div>`}).join(""))},
+dash(){const u=cur(),h=S.attempts.map((a,i)=>({...a,i,p:pct(a.score,a.total),t:TESTS.find(t=>t.id==a.test)})).filter(a=>a.user===u.email),sub={};
+ h.forEach(a=>(sub[a.t.subject]=sub[a.t.subject]||[]).push(a.p));const tp={};h.forEach(a=>a.ans.forEach(x=>{const q=qById(x.q),k=q.subject+" · "+q.topic,d=tp[k]||(tp[k]={g:0,o:0});d.g+=x.aw;d.o+=q.marks}));
+ const wk=Object.entries(tp).map(([k,v])=>[k,pct(v.g,v.o)]).sort((a,b)=>a[1]-b[1]).slice(0,5),avg=h.length?Math.round(h.reduce((s,a)=>s+a.p,0)/h.length):0;
+ M(`<h2>Welcome, ${esc(u.name)}</h2><div class="grid card"><div><div class="stat">${h.length}</div><span class="mute">Tests taken</span></div><div><div class="stat">${avg}%</div><span class="mute">Average</span></div><div><div class="stat">${Math.max(0,...h.map(a=>a.p))}%</div><span class="mute">Best</span></div></div>
+ <div class="card"><h3>Score trend</h3>${h.length>1?chart(h.map(a=>a.p)):`<p class="mute">Take at least two tests to see your trend.</p>`}</div>
+ <div class="card"><h3>Subject averages</h3>${Object.entries(sub).map(([k,v])=>{const m=Math.round(v.reduce((a,b)=>a+b)/v.length);return `<p>${k} — ${m}%</p><div class="bar"><i style="width:${m}%"></i></div>`}).join("")||`<p class="mute">No data yet.</p>`}</div>
+ ${wk.length?`<div class="card"><h3>Weakest topics</h3>${wk.map(([k,p])=>`<p>${esc(k)} — <span class="${p<60?"bad":""}">${p}%</span></p>`).join("")}</div>`:""}
+ <div class="card"><h3>History</h3><table>${h.slice().reverse().map(a=>`<tr><td>${a.t.title}</td><td>${a.score}/${a.total} (${a.p}%)</td><td>${a.when}</td><td><a onclick="go('report',${a.i})">Report</a></td></tr>`).join("")}</table></div>`)},
+practice(){const u=cur(),qs=shuffle(allQ().filter(q=>q.board==u.board&&q.grade==u.grade)).slice(0,10);
+ M(`<h2>Quick practice</h2><p class="mute">Answers are shown on request; this doesn't count toward your dashboard.</p>`+qs.map((q,i)=>`<div class="card"><p><b>Q${i+1}.</b> ${esc(q.text)} <span class="mute">· ${esc(q.topic)}</span></p>${q.type=="mcq"?q.options.map((o,j)=>`<div>${"ABCD"[j]}. ${esc(o)}</div>`).join(""):""}<p><button class="alt" onclick="this.nextElementSibling.hidden=false">Show answer</button><span hidden> <b class="ok">${esc(q.type=="mcq"?q.options["ABCD".indexOf(q.answer)]:q.answer)}</b><br><span class="mute">${esc(q.exp)}</span></span></p></div>`).join("")+`<button onclick="V.practice()">New set</button>`)},
+admin(){const done=S.attempts.length;M(`<h2>Admin</h2><div class="grid card"><div><div class="stat">${S.users.length}</div><span class="mute">Students</span></div><div><div class="stat">${allQ().length}</div><span class="mute">Questions</span></div><div><div class="stat">${TESTS.length}</div><span class="mute">Tests</span></div><div><div class="stat">${done}</div><span class="mute">Attempts</span></div></div>
+ <div class="card"><h3>Users</h3><table><tr><th>Name</th><th>Email</th><th>Board/Class</th><th>Tests</th><th>Status</th><th></th></tr>${S.users.map((u,i)=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${u.board} ${u.grade}</td><td>${S.attempts.filter(a=>a.user===u.email).length}</td><td>${u.active===false?"disabled":"active"}</td><td><button class="alt" onclick="adm(${i},'t')">${u.active===false?"Enable":"Disable"}</button> <button class="red" onclick="adm(${i},'d')">Delete</button></td></tr>`).join("")||`<tr><td class="mute">No students yet. Sign up in another tab to see them here.</td></tr>`}</table></div>
+ <div class="card"><h3>Add question</h3><select id="qb">${opt(BOARDS)}</select> <select id="qg">${opt(GRADES)}</select> <select id="qs">${opt(SUBJECTS)}</select> <input id="qt" placeholder="Topic"><br><br><input id="qx" placeholder="Question" style="width:100%"><br><br><input id="qa" placeholder="Answer (short-answer)" style="width:100%"><br><br><textarea id="qe" placeholder="Explanation" style="width:100%"></textarea><br><button onclick="addQuestion()">Save</button></div>`)}};
+function chart(d){const n=d.length,p=d.map((v,i)=>[30+i*540/(n-1),160-v*1.4]);return `<svg viewBox="0 0 600 180" style="width:100%"><polyline fill="none" stroke="#3b5bdb" stroke-width="2.5" points="${p.map(x=>x.join()).join(" ")}"/>${p.map((x,i)=>`<circle cx="${x[0]}" cy="${x[1]}" r="4" fill="#3b5bdb"/><text x="${x[0]}" y="${x[1]-8}" font-size="11" text-anchor="middle" fill="currentColor">${d[i]}%</text>`).join("")}</svg>`}
+function doLogin(){const e=$("#e").value.trim().toLowerCase(),p=$("#p").value;if(e==="admin"&&p==="admin123"){S.session="admin";save();return go("admin")}
+ const u=S.users.find(u=>u.email===e&&u.pw===btoa(p));if(!u||u.active===false)return $("#err").textContent="Invalid credentials or account disabled.";S.session=e;save();go("dash")}
+function doReg(){const n=$("#n").value.trim(),e=$("#e").value.trim().toLowerCase(),p=$("#p").value;if(!n||!e||p.length<8)return $("#err").textContent="Fill all fields; password 8+ chars.";if(S.users.some(u=>u.email===e))return $("#err").textContent="Email already registered.";
+ S.users.push({name:n,email:e,pw:btoa(p),role:"student",board:$("#b").value,grade:+$("#g").value,active:true});save();go("login")}
+function startTest(id){go("attempt",id)}
+function norm(s){return String(s||"").trim().toLowerCase().replace(/\s+/g," ").replace(/\.$/,"")}
+function submitTest(id){const t=TESTS.find(t=>t.id==id),u=cur();let score=0,total=0;const ans=t.qids.map(qi=>{const q=qById(qi),el=q.type=="mcq"?document.querySelector(`input[name=q${qi}]:checked`):document.querySelector(`input[name=q${qi}]`),r=el?el.value:"";
+ let ok=false;if(r){if(q.type=="mcq")ok=r==q.answer;else ok=q.answer.split("|").some(a=>norm(a)==norm(r)||(!isNaN(+a)&&!isNaN(+r)&&+a==+r))}
+ const aw=ok?q.marks:0;score+=aw;total+=q.marks;return{q:qi,r,ok,aw}});
+ S.attempts.push({user:u.email,test:id,score,total,ans,when:new Date().toLocaleString()});save();clearInterval(window.T);go("report",S.attempts.length-1)}
+function adm(i,a){if(a=="t")S.users[i].active=S.users[i].active===false;else if(confirm("Delete user and attempts?")){const e=S.users[i].email;S.attempts=S.attempts.filter(x=>x.user!==e);S.users.splice(i,1)}save();V.admin()}
+function addQuestion(){const x=$("#qx").value.trim(),a=$("#qa").value.trim();if(!x||!a)return alert("Question and answer required");S.extra.push({id:100000+S.extra.length,board:$("#qb").value,grade:+$("#qg").value,subject:$("#qs").value,topic:$("#qt").value||"General",type:"short",text:x,options:[],answer:a,exp:$("#qe").value,marks:1});save();V.admin()}
+function route(){const[v,a]=location.hash.slice(1).split("/"),u=cur();nav();const pub=["","home","login","reg"];
+ if(!u&&!pub.includes(v||""))return go("login");if(u&&pub.includes(v||""))return go(u.role==="admin"?"admin":"dash");
+ if(u&&u.role!=="admin"&&v==="admin")return go("dash");
+ (V[v||"home"]||V.home)(a)}
+addEventListener("hashchange",route);route();
+</script></body></html>
